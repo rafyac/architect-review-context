@@ -31,9 +31,9 @@ Drift comparison identifies misalignment between Bicep infrastructure definition
 ### Execution Steps
 
 1. **Collect Live Resources** (read-only ARG query):
-   - Query subscription via Azure Resource Graph: `resources | where subscriptionId == '4af326ce-fa13-4b32-8c36-6fb8963741c0'`
+   - Query subscription via Azure Resource Graph: `resources | where subscriptionId == '{SUBSCRIPTION_ID}'`
    - Extract: resource name, type, location, resource group, tags, SKU/tier
-   - Focus on resource group: `rg-kapeltol-6234`
+   - Focus on resource group: `{RESOURCE_GROUP}`
 
 2. **Extract Bicep Definitions**:
    - Parse all `.bicep` files under `infra/modules/` and `infra/main*.bicep`
@@ -63,37 +63,37 @@ Drift comparison identifies misalignment between Bicep infrastructure definition
 ```kql
 # General inventory (subscription-scoped)
 resources
-| where subscriptionId == '4af326ce-fa13-4b32-8c36-6fb8963741c0'
+| where subscriptionId == '{SUBSCRIPTION_ID}'
 | project name, type, location, resourceGroup, tags, sku
 | order by type, name
 
 # Count resources by type
 resources
-| where subscriptionId == '4af326ce-fa13-4b32-8c36-6fb8963741c0'
+| where subscriptionId == '{SUBSCRIPTION_ID}'
 | summarize count() by type
 | order by count() desc
 
 # Key Vaults (security focus)
 resources
 | where type == 'microsoft.keyvault/vaults'
-| where subscriptionId == '4af326ce-fa13-4b32-8c36-6fb8963741c0'
+| where subscriptionId == '{SUBSCRIPTION_ID}'
 | project name, location, sku = properties.sku, tags
 
 # App Insights (reliability focus)
 resources
 | where type == 'microsoft.insights/components'
-| where subscriptionId == '4af326ce-fa13-4b32-8c36-6fb8963741c0'
+| where subscriptionId == '{SUBSCRIPTION_ID}'
 | project name, location, appId = properties.appId, tags
 
 # Logic Apps (operations focus)
 resources
 | where type == 'microsoft.logic/workflows'
-| where subscriptionId == '4af326ce-fa13-4b32-8c36-6fb8963741c0'
+| where subscriptionId == '{SUBSCRIPTION_ID}'
 | project name, location, state = properties.state, tags
 
 # Resources missing tags (cost/governance)
 resources
-| where subscriptionId == '4af326ce-fa13-4b32-8c36-6fb8963741c0'
+| where subscriptionId == '{SUBSCRIPTION_ID}'
 | where tags == '' or isnull(tags)
 | project name, type, resourceGroup
 | order by type
