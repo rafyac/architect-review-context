@@ -1,0 +1,35 @@
+name: Create Architecture Improvement Project
+on:
+  workflow_dispatch:
+    inputs:
+      owner:
+        description: Org or user owning the project
+        required: true
+        default: katarinasvedman
+jobs:
+  setup-project:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install gh CLI
+        uses: cli/gh-action@v2
+        with:
+          version: latest
+      - name: Ensure script executable
+        run: chmod +x docs/architecture/scripts/setup-project.sh
+      - name: Authenticate gh
+        env:
+          PROJECT_ADMIN_PAT: ${{ secrets.PROJECT_ADMIN_PAT }}
+        run: echo "$PROJECT_ADMIN_PAT" | gh auth login --with-token
+      - name: Run setup script
+        run: docs/architecture/scripts/setup-project.sh ${{ github.event.inputs.owner }}
+    permissions:
+      contents: read
+      issues: write
+      # project access requires PAT with appropriate scopes (fine-grained)
+
+# Notes:
+# - Provide secret PROJECT_ADMIN_PAT with access to Projects (Beta) operations.
+# - Script adds fields, options, and issues automatically.
+# - Adjust sprint assignment lists in script if roadmap changes.
