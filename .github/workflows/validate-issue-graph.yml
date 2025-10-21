@@ -11,18 +11,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Ensure generator script present (fetch from main if missing)
-        run: |
-          if [ ! -f "$GITHUB_WORKSPACE/architecture/scripts/generate_issue_graph.py" ]; then
-            echo "Generator script missing in PR branch; fetching from origin/main"
-            git fetch origin main --depth=1 || git fetch origin main
-            git checkout origin/main -- architecture/scripts/generate_issue_graph.py architecture/issues-metadata.json architecture/ARCHITECT_REPORT_FINAL_2025-10-16.md || true
-          fi
-          echo "Listing architecture/ and architecture/scripts"
-          ls -la architecture || true
-          ls -la architecture/scripts || true
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -32,23 +20,9 @@ jobs:
           python -m pip install --upgrade pip
       - name: Regenerate issue graph
         run: |
-          echo "Working directory: $(pwd)"
-          echo "Listing repository files (top-level):"
-          ls -la
-          echo "Listing architecture/scripts:" 
-          ls -la architecture/scripts || true
-          # Choose an existing report file to update
-          if [ -f "$GITHUB_WORKSPACE/architecture/FINAL_ARCHITECTURAL_REVIEW_REPORT.md" ]; then
-            REPORT="$GITHUB_WORKSPACE/architecture/FINAL_ARCHITECTURAL_REVIEW_REPORT.md"
-          elif [ -f "$GITHUB_WORKSPACE/architecture/ARCHITECT_REPORT_TEMPLATE.md" ]; then
-            REPORT="$GITHUB_WORKSPACE/architecture/ARCHITECT_REPORT_TEMPLATE.md"
-          else
-            REPORT="$GITHUB_WORKSPACE/architecture/ARCHITECT_REPORT_SAMPLE.md"
-          fi
-          echo "Using report: $REPORT"
-          python "$GITHUB_WORKSPACE/architecture/scripts/generate_issue_graph.py" \
-            --metadata "$GITHUB_WORKSPACE/architecture/issues-metadata.json" \
-            --report "$REPORT" \
+          python architecture/scripts/generate_issue_graph.py \
+            --metadata architecture/issues-metadata.json \
+            --report architecture/ARCHITECT_REPORT_FINAL_2025-10-16.md \
             --owner katarinasvedman --repo foundry-demo-agent-framework-WIP
       - name: Fail if graph drift detected
         run: |
