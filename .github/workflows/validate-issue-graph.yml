@@ -20,11 +20,18 @@ jobs:
           python -m pip install --upgrade pip
       - name: Regenerate issue graph
         run: |
-          echo "Working directory: $(pwd)"
+          echo "Current working directory: $(pwd)"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo ""
           echo "Listing repository files (top-level):"
-          ls -la
-          echo "Listing architecture/scripts:" 
-          ls -la architecture/scripts || true
+          ls -la "$GITHUB_WORKSPACE"
+          echo ""
+          echo "Listing architecture directory:"
+          ls -la "$GITHUB_WORKSPACE/architecture" || echo "architecture directory not found"
+          echo ""
+          echo "Listing architecture/scripts directory:"
+          ls -la "$GITHUB_WORKSPACE/architecture/scripts" || echo "architecture/scripts directory not found"
+          echo ""
           python "$GITHUB_WORKSPACE/architecture/scripts/generate_issue_graph.py" \
             --metadata "$GITHUB_WORKSPACE/architecture/issues-metadata.json" \
             --report "$GITHUB_WORKSPACE/architecture/ARCHITECT_REPORT_FINAL_2025-10-16.md" \

@@ -16,14 +16,21 @@ jobs:
         uses: cli/gh-action@v2
         with:
           version: latest
+      - name: Add diagnostics
+        run: |
+          echo "Current working directory: $(pwd)"
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          echo ""
+          echo "Listing repository files (top-level):"
+          ls -la "$GITHUB_WORKSPACE"
       - name: Ensure script executable
-        run: chmod +x docs/architecture/scripts/setup-project.sh
+        run: chmod +x "$GITHUB_WORKSPACE/docs/architecture/scripts/setup-project.sh"
       - name: Authenticate gh
         env:
           PROJECT_ADMIN_PAT: ${{ secrets.PROJECT_ADMIN_PAT }}
         run: echo "$PROJECT_ADMIN_PAT" | gh auth login --with-token
       - name: Run setup script
-        run: docs/architecture/scripts/setup-project.sh ${{ github.event.inputs.owner }}
+        run: bash "$GITHUB_WORKSPACE/docs/architecture/scripts/setup-project.sh" ${{ github.event.inputs.owner }}
     permissions:
       contents: read
       issues: write
