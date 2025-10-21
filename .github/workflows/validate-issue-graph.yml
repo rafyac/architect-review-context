@@ -11,6 +11,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ensure generator script present (fetch from main if missing)
+        run: |
+          if [ ! -f "$GITHUB_WORKSPACE/architecture/scripts/generate_issue_graph.py" ]; then
+            echo "Generator script missing in PR branch; fetching from origin/main"
+            git fetch origin main --depth=1 || git fetch origin main
+            git checkout origin/main -- architecture/scripts/generate_issue_graph.py architecture/issues-metadata.json architecture/ARCHITECT_REPORT_FINAL_2025-10-16.md || true
+          fi
+          echo "Listing architecture/ and architecture/scripts"
+          ls -la architecture || true
+          ls -la architecture/scripts || true
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
