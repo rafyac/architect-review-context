@@ -1,0 +1,5 @@
+{
+  "high": ["breach", "exposure", "privilege", "downtime", "unencrypted", "single point"],
+  "medium": ["optimize", "improve", "consolidate", "centralize", "instrument"],
+  "low": ["refactor", "polish", "cleanup", "hygiene"]
+}
