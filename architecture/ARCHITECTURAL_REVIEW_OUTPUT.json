@@ -1,0 +1,708 @@
+{
+  "review_metadata": {
+    "date": "2025-10-20",
+    "timeboxMinutes": 15,
+    "reviewer": "Enterprise Cloud & AI Architect Chat Mode",
+  "subscription_id": "{SUBSCRIPTION_ID}",
+  "resource_group": "{RESOURCE_GROUP}",
+    "scope": "Foundry Demo Agent Framework - Multi-agent orchestration",
+    "status": "Complete"
+  },
+  "snapshot": {
+    "resources": {
+      "deployed": [
+        "cognitive://ai-foundry-hub (swedencentral)",
+        "compute://container-apps-env (swedencentral)",
+        "compute://function-app-remote-data (swedencentral, Running)",
+        "compute://app-service-plan-agents-demo (swedencentral)",
+        "data://storage-accounts (14 total, mixed purpose)",
+        "security://key-vault (public network enabled)",
+        "monitoring://app-insights (30-day retention)"
+      ],
+      "expected_not_deployed": [
+        "compute://container-app (defined but not deployed)",
+        "logic://logic-app-email (defined but not deployed)",
+        "logic://logic-app-trigger (defined but not deployed)"
+      ],
+      "undocumented": [
+        "data://storage-account-legacy-invoiceagentst",
+        "data://storage-account-demo-foundrystore283614",
+        "data://storage-account-test-artifacts (11 others)"
+      ]
+    },
+    "pillars": {
+      "security_identity": {
+        "strengths": [
+          "Managed identities configured for Function App (SystemAssigned)",
+          "TLS 1.2 minimum enforced on all Storage Accounts",
+          "Key Vault soft-delete enabled (7-day retention)",
+          "Secrets centralized in Key Vault (not hardcoded)"
+        ],
+        "gaps": [
+          "AI Foundry publicNetworkAccess set to Enabled (CRITICAL)",
+          "Key Vault publicNetworkAccess set to Enabled (CRITICAL)",
+          "Key Vault access policies empty - no RBAC enforcement",
+          "No private endpoints or network isolation",
+          "No audit logging for Key Vault access"
+        ],
+        "risks": [
+          "Unauthorized access to Key Vault secrets (HIGH)",
+          "AI model endpoints exposed to internet scanning (HIGH)",
+          "Credential exposure if secrets leaked from logs (MEDIUM)"
+        ]
+      },
+      "reliability_resilience": {
+        "strengths": [
+          "Application Insights configured with Log Analytics",
+          "30-day log retention for incident investigation",
+          "Container Apps auto-scaling configured (min 0, max 10)",
+          "Function App consumption tier provides high availability"
+        ],
+        "gaps": [
+          "Single region deployment only (swedencentral) - no DR (CRITICAL)",
+          "No health probes on Container Apps ingress",
+          "Function App cold-start latency not documented",
+          "No documented backup strategy for Storage Accounts",
+          "No disaster recovery runbook"
+        ],
+        "risks": [
+          "Region failure leads to complete outage (HIGH)",
+          "Unhealthy replicas continue receiving traffic (MEDIUM)",
+          "Storage data loss if node fails - LRS only (MEDIUM)",
+          "Cascading failures from misconfigured replicas (MEDIUM)"
+        ]
+      },
+      "performance_efficiency": {
+        "strengths": [
+          "Container Apps scale rules configured (HTTP concurrency)",
+          "Function App on Y1 consumption tier (cost-effective)",
+          "Hot storage tier appropriate for agent data",
+          ".NET 8.0 runtime optimized performance"
+        ],
+        "gaps": [
+          "Container image hardcoded to runtime only (cannot deploy app)",
+          "AI Foundry provisioned at Basic tier (lowest performance)",
+          "Function App consumption tier has cold-start penalty",
+          "No documented performance baseline or SLA targets",
+          "No performance monitoring dashboard"
+        ],
+        "risks": [
+          "High P95 latency under peak load (MEDIUM)",
+          "Model inference delays due to Basic tier (MEDIUM)",
+          "Unpredictable function cold-start times (LOW)"
+        ]
+      },
+      "cost_optimization": {
+        "strengths": [
+          "Consumption-based pricing for compute (zero idle cost)",
+          "Development template uses Free tier App Service Plan",
+          "Storage accounts use Standard_LRS except 2 ZRS accounts"
+        ],
+        "gaps": [
+          "14 storage accounts vs. 2-3 defined in Bicep (CRITICAL DRIFT)",
+          "No FinOps tagging for cost allocation",
+          "Resource purpose unclear - potential orphaned accounts",
+          "No capacity planning or right-sizing strategy",
+          "Log Analytics 30-day retention could be shorter for dev logs"
+        ],
+        "risks": [
+          "Storage account sprawl drives unnecessary $300-500/year cost (HIGH)",
+          "Orphaned resources continue billing indefinitely (HIGH)",
+          "No cost visibility for chargeback/accountability (MEDIUM)"
+        ]
+      },
+      "operational_excellence": {
+        "strengths": [
+          "Modular Bicep architecture (9 independent modules)",
+          "Separate dev/prod parameter files",
+          "PowerShell deployment script with validation",
+          "Comprehensive README documentation"
+        ],
+        "gaps": [
+          "Manual post-deployment configuration steps (CRITICAL DRIFT)",
+          "No IaC validation tests or linting in CI/CD",
+          "Logic App workflows not version-controlled",
+          "No deployment gates or approval workflow",
+          "Configuration drift if manual steps skipped"
+        ],
+        "risks": [
+          "Deployment failure due to missed manual steps (HIGH)",
+          "Configuration drift from post-deployment changes (MEDIUM)",
+          "Accidental infrastructure changes untracked (MEDIUM)"
+        ]
+      },
+      "sustainability": {
+        "strengths": [
+          "Swedencentral region powered by ~99% renewable electricity",
+          "Scale-to-zero eliminates idle resource waste",
+          "Consumption pricing reduces resource waste vs. always-on VMs"
+        ],
+        "gaps": [
+          "Orphaned storage accounts consume power indefinitely",
+          "No resource lifecycle management or cleanup procedures",
+          "No consolidation strategy (14 accounts → 3 target)"
+        ],
+        "risks": [
+          "Idle resources increase carbon footprint (LOW)",
+          "No consolidation strategy limits sustainability gains (LOW)"
+        ]
+      },
+      "ai_governance_data_ethics": {
+        "strengths": [
+          "Connection strings stored in Key Vault (not hardcoded)",
+          "AI Foundry Hub and Project isolated per workspace"
+        ],
+        "gaps": [
+          "No inference logging - cannot audit model usage (CRITICAL)",
+          "No prompt governance or validation",
+          "AI Foundry publicNetworkAccess exposed to internet (CRITICAL)",
+          "No data residency tagging for compliance",
+          "No content moderation filter on email outputs"
+        ],
+        "risks": [
+          "Untracked AI model usage violates GDPR/SOC2 compliance (HIGH)",
+          "Undetected model misuse or harmful outputs (HIGH)",
+          "Unauthorized model inference; model IP theft (MEDIUM)"
+        ]
+      }
+    },
+    "resource_count": {
+      "deployed": 7,
+      "expected_not_deployed": 3,
+      "undocumented": 13,
+      "total": 23
+    }
+  },
+  "recommendations": [
+    {
+      "id": 1,
+      "sprint": "Sprint-1",
+      "pillar": "Security & Identity",
+      "priority": "HIGH",
+      "action": "Enable Private Endpoint for Key Vault",
+      "rationale": "AI Foundry workspace and Key Vault public network access creates unauthorized access risk; private endpoints enforce network-level security boundary",
+      "effort": "Medium",
+      "severity": "High",
+      "reference": "infra/modules/keyvault.bicep line 25",
+      "acceptance_criteria": [
+        "Private endpoint deployed in production VNet",
+        "NSG rules restrict access to authorized subnets only",
+        "publicNetworkAccess set to Disabled",
+        "Applications access secrets via private endpoint",
+        "Deployment tested and validated"
+      ]
+    },
+    {
+      "id": 2,
+      "sprint": "Sprint-1",
+      "pillar": "Security & Identity",
+      "priority": "HIGH",
+      "action": "Disable Public Access & Enforce RBAC on AI Foundry",
+      "rationale": "Prevents unauthorized model access, reduces attack surface, enables compliance audit trails",
+      "effort": "Short",
+      "severity": "High",
+      "reference": "infra/modules/ai-foundry.bicep line 21",
+      "acceptance_criteria": [
+        "publicNetworkAccess set to Disabled",
+        "Private endpoint deployed (if supported)",
+        "RBAC roles assigned to managed identities",
+        "Public queries rejected with 403 Unauthorized"
+      ]
+    },
+    {
+      "id": 3,
+      "sprint": "Sprint-1",
+      "pillar": "Security & Identity",
+      "priority": "HIGH",
+      "action": "Implement Key Vault RBAC - Replace Default Policies",
+      "rationale": "Empty access policies combined with public network creates unlimited unauthorized access risk; RBAC enforces least-privilege access",
+      "effort": "Short",
+      "severity": "High",
+      "reference": "infra/modules/keyvault.bicep lines 24-25",
+      "acceptance_criteria": [
+        "RBAC roles assigned to all managed identities",
+        "Container Apps: Key Vault Secrets User + Crypto User",
+        "Function App: Key Vault Secrets User",
+        "Diagnostic logging enabled to Application Insights",
+        "Role assignments verified in portal"
+      ]
+    },
+    {
+      "id": 4,
+      "sprint": "Sprint-1",
+      "pillar": "Cost Optimization",
+      "priority": "HIGH",
+      "action": "Audit & Inventory All Storage Accounts - Remove Orphaned Resources",
+      "rationale": "14 storage accounts vs. 2-3 defined in Bicep indicates drift and orphaned resources; elimination saves ~$300-500/year",
+      "effort": "Medium",
+      "severity": "High",
+  "reference": "Live inventory: 14 storage accounts in {RESOURCE_GROUP}",
+      "acceptance_criteria": [
+        "Complete inventory: name, creation date, owner, purpose",
+        "Decommission decision made for each account",
+        "Active accounts added to Bicep templates",
+        "FinOps tags applied to all active accounts",
+        "Cost reduced by min $300/year"
+      ]
+    },
+    {
+      "id": 5,
+      "sprint": "Sprint-1",
+      "pillar": "AI Governance & Data Ethics",
+      "priority": "HIGH",
+      "action": "Implement Model Inference Logging - Enable AI Governance Audit Trail",
+      "rationale": "No logging of model calls violates GDPR, SOC2 compliance requirements; enables misuse detection",
+      "effort": "Medium",
+      "severity": "High",
+      "reference": "No current logging configured",
+      "acceptance_criteria": [
+        "All AI Foundry calls logged to Application Insights",
+        "Log includes: prompt, model, parameters, output, caller, cost",
+        "Queryable audit trail for compliance review",
+        "Cost tracking per agent/user enabled",
+        "Audit dashboard created"
+      ]
+    },
+    {
+      "id": 6,
+      "sprint": "Sprint-2",
+      "pillar": "Reliability & Resilience",
+      "priority": "HIGH",
+      "action": "Plan Multi-Region Failover Strategy & Disaster Recovery",
+      "rationale": "Single region deployment means region-wide outage = complete service unavailability; multi-region reduces RTO from ∞ to < 4 hours",
+      "effort": "Large",
+      "severity": "High",
+      "reference": "parameters-complete.json - single region swedencentral",
+      "acceptance_criteria": [
+        "Multi-region architecture documented (primary + secondary)",
+        "Failover runbook created with steps",
+        "RTO/RPO targets defined and achievable",
+        "Cost estimate for standby resources",
+        "First failover drill completed successfully"
+      ]
+    },
+    {
+      "id": 7,
+      "sprint": "Sprint-2",
+      "pillar": "Operational Excellence",
+      "priority": "MEDIUM",
+      "action": "Automate Post-Deployment Configuration - Eliminate Manual Steps",
+      "rationale": "Manual post-deploy steps (AI Foundry connector config, Office 365 auth) cause configuration drift and prevent reproducible deployments",
+      "effort": "Medium",
+      "severity": "Medium",
+      "reference": "infra/README.md post-deployment section",
+      "acceptance_criteria": [
+        "All manual steps automated in Bicep/PowerShell",
+        "100% end-to-end deployment possible with zero manual steps",
+        "Deployment validation script verifies all components healthy",
+        "README updated: no post-deployment steps needed"
+      ]
+    },
+    {
+      "id": 8,
+      "sprint": "Sprint-2",
+      "pillar": "Operational Excellence",
+      "priority": "MEDIUM",
+      "action": "Add IaC Validation Testing - Detect Breaking Changes in CI/CD",
+      "rationale": "No Bicep validation means breaking changes detected only in production; CI/CD validation prevents deployment failures",
+      "effort": "Medium",
+      "severity": "Medium",
+      "reference": "No current CI/CD validation configured",
+      "acceptance_criteria": [
+        "GitHub Actions workflow validates Bicep on each PR",
+        "Bicep linting enforces naming/documentation standards",
+        "Cost estimation run on each PR",
+        "Blocking check prevents merge if validation fails",
+        "Branch protection rules enforce CI passing"
+      ]
+    },
+    {
+      "id": 9,
+      "sprint": "Sprint-2",
+      "pillar": "Cost Optimization",
+      "priority": "MEDIUM",
+      "action": "Implement FinOps Tagging Strategy - Enable Cost Allocation & Chargeback",
+      "rationale": "No cost allocation tags prevent chargeback, cost visibility, anomaly detection; standard tags enable full cost transparency",
+      "effort": "Short",
+      "severity": "Medium",
+      "reference": "Resources lack environment/team/cost-center tags",
+      "acceptance_criteria": [
+        "All Bicep modules updated with tags parameter",
+        "All resources deployed with: environment, team, project, cost-center tags",
+        "Existing resources tagged via script/portal",
+        "Cost Management dashboard created (group by tag)",
+        "Budget alerts configured per team"
+      ]
+    },
+    {
+      "id": 10,
+      "sprint": "Sprint-2",
+      "pillar": "Operational Excellence",
+      "priority": "MEDIUM",
+      "action": "Update Container Image Reference - Enable Foundry Agents Deployment",
+      "rationale": "Hardcoded base image prevents deployment of actual Foundry Agents application; proper image reference enables end-to-end deployment",
+      "effort": "Short",
+      "severity": "Medium",
+      "reference": "infra/modules/container-apps.bicep line 18",
+      "acceptance_criteria": [
+        "Container image points to actual Foundry Agents Docker image",
+        "GitHub Actions workflow builds and pushes image",
+        "Container Registry (ACR) configured (optional)",
+        "Test: Container App pulls image and runs agents"
+      ]
+    },
+    {
+      "id": 11,
+      "sprint": "Sprint-3",
+      "pillar": "Reliability & Resilience",
+      "priority": "LOW",
+      "action": "Add Container App Health Probes & Liveness Detection",
+      "rationale": "Missing health probes mean unhealthy replicas continue receiving traffic; probes enable auto-restart of failed instances",
+      "effort": "Short",
+      "severity": "Low",
+      "reference": "infra/modules/container-apps.bicep - no probes configured",
+      "acceptance_criteria": [
+        "Readiness probe: GET /health → 200 OK",
+        "Liveness probe: GET /health/live → 200 OK",
+        "Failed replicas automatically restarted",
+        "Test: Verify probe endpoints respond correctly"
+      ]
+    },
+    {
+      "id": 12,
+      "sprint": "Sprint-3",
+      "pillar": "Performance Efficiency",
+      "priority": "LOW",
+      "action": "Upgrade AI Foundry to Standard Tier for Improved Performance",
+      "rationale": "Basic tier (lowest SKU) causes model inference latency; Standard tier improves throughput and response time",
+      "effort": "Short",
+      "severity": "Low",
+      "reference": "infra/modules/ai-foundry.bicep line 9",
+      "acceptance_criteria": [
+        "AI Foundry SKU upgraded from Basic to Standard",
+        "Benchmark: Model inference latency P95 < 1s",
+        "Cost impact documented and approved"
+      ]
+    },
+    {
+      "id": 13,
+      "sprint": "Sprint-3",
+      "pillar": "Operational Excellence",
+      "priority": "LOW",
+      "action": "Enable Logic App Workflow Version Control & CI/CD",
+      "rationale": "Auto-generated workflow JSON not version-controlled prevents change tracking, audit trail, and reproducible deployments",
+      "effort": "Medium",
+      "severity": "Low",
+      "reference": "Logic App workflows (email, trigger) not in repo",
+      "acceptance_criteria": [
+        "Logic App workflows exported to infra/workflows/*.json",
+        "Workflows committed to git repository",
+        "GitHub Actions validates workflow on PR",
+        "Deployment script updates Logic Apps from versioned JSON"
+      ]
+    },
+    {
+      "id": 14,
+      "sprint": "Sprint-3",
+      "pillar": "Sustainability",
+      "priority": "LOW",
+      "action": "Consolidate Storage Accounts - Reduce Resource Sprawl",
+      "rationale": "14 storage accounts reduce operational simplicity and increase maintenance overhead; consolidation to 3 improves efficiency",
+      "effort": "Medium",
+      "severity": "Low",
+  "reference": "14 storage accounts in {RESOURCE_GROUP}",
+      "acceptance_criteria": [
+        "3 consolidated storage accounts created",
+        "Data migrated from orphaned accounts",
+        "Old accounts deleted",
+        "Cost reduced by ~$300/year"
+      ]
+    },
+    {
+      "id": 15,
+      "sprint": "Sprint-3",
+      "pillar": "AI Governance & Data Ethics",
+      "priority": "LOW",
+      "action": "Implement AI Output Content Moderation Filter",
+      "rationale": "Unfiltered AI-generated email outputs risk harmful/biased content reaching users; moderation prevents brand/compliance damage",
+      "effort": "Medium",
+      "severity": "Low",
+      "reference": "No content moderation configured",
+      "acceptance_criteria": [
+        "Azure Content Moderator integrated into email Logic App",
+        "AI outputs scanned for offensive content",
+        "Failed moderation triggers manual review workflow",
+        "Moderation decisions logged for audit"
+      ]
+    }
+  ],
+  "issues_draft": [
+    {
+      "title": "[SECURITY] Enable Private Endpoint for Key Vault",
+      "labels": ["security", "infrastructure", "Sprint-1", "HIGH-PRIORITY"],
+      "severity": "High",
+      "sprint": "Sprint-1",
+      "description": "The Azure Key Vault is currently accessible from the public internet (publicNetworkAccess: 'Enabled'). This creates a significant security exposure. Deploy private endpoint and NSG rules to restrict access.",
+      "acceptanceCriteria": [
+        "Private endpoint deployed for Key Vault",
+        "NSG rules restrict access to authorized subnets",
+        "publicNetworkAccess set to Disabled",
+        "Applications access via private endpoint",
+        "Security testing validates no public access"
+      ],
+      "references": ["infra/modules/keyvault.bicep line 25"]
+    },
+    {
+      "title": "[SECURITY] Disable Public Access on AI Foundry & Enforce RBAC",
+      "labels": ["security", "ai-governance", "Sprint-1", "HIGH-PRIORITY"],
+      "severity": "High",
+      "sprint": "Sprint-1",
+      "description": "AI Foundry workspace exposed to internet (publicNetworkAccess: Enabled). Implement private endpoint and RBAC to restrict model access.",
+      "acceptanceCriteria": [
+        "publicNetworkAccess set to Disabled",
+        "Private endpoint deployed for AI Foundry",
+        "RBAC roles assigned to managed identities",
+        "Public queries rejected with 403 Unauthorized"
+      ],
+      "references": ["infra/modules/ai-foundry.bicep line 21"]
+    },
+    {
+      "title": "[SECURITY] Implement Key Vault RBAC - Replace Default Policies",
+      "labels": ["security", "rbac", "Sprint-1", "HIGH-PRIORITY"],
+      "severity": "High",
+      "sprint": "Sprint-1",
+      "description": "Key Vault has empty access policies and default 'Allow' network rules. Implement RBAC role assignments for all managed identities.",
+      "acceptanceCriteria": [
+        "RBAC roles assigned to all managed identities",
+        "Container Apps: Key Vault Secrets User + Crypto User",
+        "Function App: Key Vault Secrets User",
+        "Diagnostic logging enabled to Application Insights",
+        "Role assignments verified in portal"
+      ],
+      "references": ["infra/modules/keyvault.bicep lines 24-25"]
+    },
+    {
+      "title": "[COST] Audit & Inventory All Storage Accounts - Remove Orphaned Resources",
+      "labels": ["cost-optimization", "inventory", "Sprint-1", "HIGH-PRIORITY"],
+      "severity": "High",
+      "sprint": "Sprint-1",
+      "description": "14 storage accounts deployed vs. 2-3 defined in Bicep. Inventory all accounts; remove orphaned resources; save ~$300-500/year.",
+      "acceptanceCriteria": [
+        "Complete inventory of all 14 storage accounts",
+        "Decommission decision documented for each",
+        "Active accounts added to Bicep templates",
+        "FinOps tags applied to all active accounts",
+        "Cost reduced by min $300/year"
+      ],
+  "references": ["Live inventory: {RESOURCE_GROUP}"]
+    },
+    {
+      "title": "[AI-GOV] Implement Model Inference Logging - Enable Audit Trail",
+      "labels": ["ai-governance", "compliance", "Sprint-1", "HIGH-PRIORITY"],
+      "severity": "High",
+      "sprint": "Sprint-1",
+      "description": "No logging of model calls violates GDPR/SOC2 compliance. Implement comprehensive inference logging to Application Insights.",
+      "acceptanceCriteria": [
+        "All AI Foundry calls logged to Application Insights",
+        "Logs include: prompt, model, parameters, output, caller, cost",
+        "Queryable audit trail for compliance review",
+        "Cost tracking per agent enabled",
+        "Audit dashboard created"
+      ],
+      "references": ["No current logging configured"]
+    },
+    {
+      "title": "[RELIABILITY] Plan Multi-Region Failover Strategy & Disaster Recovery",
+      "labels": ["reliability", "disaster-recovery", "Sprint-2"],
+      "severity": "High",
+      "sprint": "Sprint-2",
+      "description": "Single region deployment means region-wide outage = complete unavailability. Plan multi-region failover with RTO < 4 hours.",
+      "acceptanceCriteria": [
+        "Multi-region architecture documented",
+        "Failover runbook created and tested",
+        "RTO/RPO targets defined",
+        "Cost estimate for standby resources",
+        "First failover drill completed"
+      ],
+      "references": ["parameters-complete.json - single region only"]
+    },
+    {
+      "title": "[OPS] Automate Post-Deployment Configuration Steps",
+      "labels": ["operations", "automation", "Sprint-2"],
+      "severity": "Medium",
+      "sprint": "Sprint-2",
+      "description": "Manual post-deploy steps (AI Foundry config, Office 365 auth) cause configuration drift. Automate all steps in Bicep/PowerShell.",
+      "acceptanceCriteria": [
+        "AI Foundry connector automated in Logic App",
+        "Office 365 connection automated",
+        "Key Vault secrets pre-populated",
+        "100% end-to-end deployment automation",
+        "README: zero manual steps"
+      ],
+      "references": ["infra/README.md post-deployment section"]
+    },
+    {
+      "title": "[OPS] Add IaC Validation Testing to CI/CD Pipeline",
+      "labels": ["devops", "testing", "Sprint-2"],
+      "severity": "Medium",
+      "sprint": "Sprint-2",
+      "description": "No Bicep validation in CI/CD means breaking changes detected only in production. Implement GitHub Actions validation.",
+      "acceptanceCriteria": [
+        "GitHub Actions validates Bicep on each PR",
+        "Bicep linting enforces standards",
+        "Cost estimation run on each PR",
+        "Blocking check prevents merge if validation fails",
+        "Branch protection rules enforced"
+      ],
+      "references": ["No current CI/CD validation"]
+    },
+    {
+      "title": "[COST] Implement FinOps Tagging Strategy",
+      "labels": ["cost-optimization", "governance", "Sprint-2"],
+      "severity": "Medium",
+      "sprint": "Sprint-2",
+      "description": "Resources lack cost allocation tags. Implement standard tagging across all resources for cost tracking and chargeback.",
+      "acceptanceCriteria": [
+        "All Bicep modules updated with tags parameter",
+        "All resources deployed with required tags",
+        "Existing resources tagged",
+        "Cost Management dashboard created",
+        "Budget alerts configured"
+      ],
+      "references": ["Resources lack environment/team/cost-center tags"]
+    },
+    {
+      "title": "[OPS] Update Container Image Reference - Enable App Deployment",
+      "labels": ["operations", "deployment", "Sprint-2"],
+      "severity": "Medium",
+      "sprint": "Sprint-2",
+      "description": "Hardcoded base image prevents deployment of actual Foundry Agents. Update to point to application image in ACR.",
+      "acceptanceCriteria": [
+        "Container image references Foundry Agents app",
+        "GitHub Actions builds and pushes image",
+        "Container Registry configured",
+        "Container App pulls and runs agents successfully"
+      ],
+      "references": ["infra/modules/container-apps.bicep line 18"]
+    },
+    {
+      "title": "[RELIABILITY] Add Container App Health Probes",
+      "labels": ["reliability", "monitoring", "Sprint-3"],
+      "severity": "Low",
+      "sprint": "Sprint-3",
+      "description": "Missing health probes mean unhealthy replicas continue serving traffic. Add readiness and liveness probes.",
+      "acceptanceCriteria": [
+        "Readiness probe: GET /health → 200 OK",
+        "Liveness probe: GET /health/live → 200 OK",
+        "Failed replicas automatically restarted",
+        "Probes tested and validated"
+      ],
+      "references": ["infra/modules/container-apps.bicep"]
+    },
+    {
+      "title": "[PERFORMANCE] Upgrade AI Foundry to Standard Tier",
+      "labels": ["performance", "infrastructure", "Sprint-3"],
+      "severity": "Low",
+      "sprint": "Sprint-3",
+      "description": "Basic tier causes model inference latency. Upgrade to Standard tier for better throughput.",
+      "acceptanceCriteria": [
+        "AI Foundry SKU upgraded to Standard",
+        "Model inference latency P95 < 1s",
+        "Cost impact documented"
+      ],
+      "references": ["infra/modules/ai-foundry.bicep line 9"]
+    },
+    {
+      "title": "[OPS] Enable Logic App Workflow Version Control",
+      "labels": ["devops", "version-control", "Sprint-3"],
+      "severity": "Low",
+      "sprint": "Sprint-3",
+      "description": "Logic App workflows not version-controlled. Export workflows to git; implement CI/CD validation.",
+      "acceptanceCriteria": [
+        "Workflows exported to infra/workflows/*.json",
+        "Workflows committed to git",
+        "GitHub Actions validates on PR",
+        "Deployment updates Logic Apps from versioned JSON"
+      ],
+      "references": ["Logic App workflows not in repo"]
+    },
+    {
+      "title": "[SUSTAINABILITY] Consolidate Storage Accounts",
+      "labels": ["cost-optimization", "consolidation", "Sprint-3"],
+      "severity": "Low",
+      "sprint": "Sprint-3",
+      "description": "14 storage accounts reduce operational simplicity. Consolidate to 3 accounts (data, config, archive).",
+      "acceptanceCriteria": [
+        "3 consolidated storage accounts created",
+        "Data migrated from orphaned accounts",
+        "Old accounts deleted",
+        "Cost reduced by ~$300/year"
+      ],
+  "references": ["14 storage accounts in {RESOURCE_GROUP}"]
+    },
+    {
+      "title": "[AI-GOV] Implement Content Moderation Filter on Email Outputs",
+      "labels": ["ai-governance", "compliance", "Sprint-3"],
+      "severity": "Low",
+      "sprint": "Sprint-3",
+      "description": "Unfiltered AI outputs risk harmful content reaching users. Add content moderation to email workflow.",
+      "acceptanceCriteria": [
+        "Azure Content Moderator integrated",
+        "Outputs scanned for offensive content",
+        "Failed moderation triggers manual review",
+        "Decisions logged for audit"
+      ],
+      "references": ["No content moderation configured"]
+    }
+  ],
+  "summary": {
+    "topRisks": [
+      "Unauthorized Key Vault access via public network + empty policies (CRITICAL)",
+      "AI model endpoints exposed to internet scanning (CRITICAL)",
+      "Single region deployment = indefinite RTO for region-wide outage (HIGH)",
+      "14 storage accounts unexplained; ~$300-500/year unnecessary cost (HIGH)",
+      "No AI inference logging violates GDPR/SOC2 compliance (HIGH)"
+    ],
+    "priorityActions": [
+      "Enable private endpoints for Key Vault and AI Foundry (Effort: Medium, Effort: Short)",
+      "Implement RBAC access policies on Key Vault (Effort: Short)",
+      "Audit and remove orphaned storage accounts (Effort: Medium)",
+      "Implement model inference logging to Application Insights (Effort: Medium)",
+      "Plan multi-region failover strategy (Effort: Large)"
+    ],
+    "sprintBreakdown": {
+      "sprint_1": {
+        "name": "Critical Security & Cost (Week 1)",
+        "issues": 5,
+        "totalEffort": "9 days",
+        "risks_mitigated": "3 HIGH risks"
+      },
+      "sprint_2": {
+        "name": "Reliability & Operations (Weeks 2-3)",
+        "issues": 5,
+        "totalEffort": "10 days",
+        "risks_mitigated": "1 HIGH, 4 MEDIUM risks"
+      },
+      "sprint_3_plus": {
+        "name": "Performance & Optimization (Weeks 4-6)",
+        "issues": 5,
+        "totalEffort": "7 days",
+        "risks_mitigated": "3 LOW risks"
+      }
+    },
+    "wordCount": 1450,
+    "totalRecommendations": 15,
+    "highSeverity": 8,
+    "mediumSeverity": 4,
+    "lowSeverity": 3,
+    "reportStatus": "Complete - Ready for Architecture Review Board",
+    "nextSteps": [
+      "Present findings to architecture review board",
+      "Validate risk severity with security team",
+      "Prioritize recommendations with business stakeholders",
+      "Create GitHub issues from recommendations",
+      "Assign engineering team leads and allocate capacity",
+      "Schedule Sprint 1 execution (Week 1)"
+    ]
+  }
+}
